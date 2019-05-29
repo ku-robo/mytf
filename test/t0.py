@@ -1,27 +1,17 @@
 import tensorflow as tf
-import numpy as np
+from tensorflow import keras
 
-x_data = np.random.rand(100).astype(np.float32)
-y_data = 0.1 * x_data + 0.3
+mnist = keras.datasets.mnist
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0
 
-# Weights = tf.Variable(tf.random_uniform([1], -1.0, 1.0))
-Weights = tf.Variable(tf.zeros([1]))
-Weights2 = tf.Variable(tf.zeros([1]))
-biases = tf.Variable(tf.zeros([1]))
+model = keras.models.Sequential([
+    keras.layers.Flatten(input_shape=(28, 28)),
+    keras.layers.Dense(512, activation=tf.nn.relu),
+    keras.layers.Dropout(0.2),
+    keras.layers.Dense(10, activation=tf.nn.softmax),
+])
 
-y = Weights2 * x_data * x_data + Weights * x_data + biases
-
-loss = tf.reduce_mean(tf.square(y - y_data))
-
-optimizer = tf.train.GradientDescentOptimizer(0.5)
-train = optimizer.minimize(loss)
-
-# init = tf.initialize_all_variables()
-init = tf.global_variables_initializer()
-
-with tf.Session() as sess:
-    sess.run(init)
-    for step in range(201):
-        sess.run(train)
-        if step % 20 == 0:
-            print(step, sess.run(Weights2), sess.run(Weights), sess.run(biases), sess.run(loss))
+model.compile(optimizer='adam', loss=keras.backend.sparse_categorical_crossentropy, metrics=['accuracy'])
+model.fit(x_train, y_train, epochs=5)
+model.evaluate(x_test, y_test)
